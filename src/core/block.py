@@ -21,21 +21,12 @@ class BlockHeader:
 
 class Block:
     def __init__(self, previous_hash, transactions):
-        """
-        previous_hash : hash du bloc précédent
-        transactions : liste d'objets Transaction
-        """
         self.transactions = transactions
         self.header = BlockHeader(previous_hash)
 
-        # Calcul de la merkle root
         self.header.merkle_root = self.compute_merkle_root()
 
     def compute_merkle_root(self):
-        """
-        Version simplifiée :
-        hash de la concaténation des hash des transactions.
-        """
         if not self.transactions:
             return hashlib.sha256("".encode()).hexdigest()
 
@@ -46,8 +37,5 @@ class Block:
         return hashlib.sha256(combined.encode()).hexdigest()
 
     def compute_hash(self):
-        """
-        Hash du bloc (header uniquement).
-        """
         block_string = json.dumps(self.header.to_dict(), sort_keys=True)
         return hashlib.sha256(block_string.encode()).hexdigest()

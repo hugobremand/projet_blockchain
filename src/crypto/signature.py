@@ -4,12 +4,6 @@ from cryptography.exceptions import InvalidSignature
 
 
 def sign_message(private_key, message: bytes) -> bytes:
-    """
-    Signe un message avec une clé privée.
-    
-    private_key : objet clé privée (SECP256K1)
-    message : données en bytes
-    """
     signature = private_key.sign(
         message,
         ec.ECDSA(hashes.SHA256())
@@ -18,11 +12,6 @@ def sign_message(private_key, message: bytes) -> bytes:
 
 
 def verify_signature(public_key, message: bytes, signature: bytes) -> bool:
-    """
-    Vérifie qu'une signature correspond au message et à la clé publique.
-    
-    Retourne True si valide, False sinon.
-    """
     try:
         public_key.verify(
             signature,

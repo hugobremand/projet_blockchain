@@ -29,7 +29,7 @@ def test_transaction_invalid_if_modified():
 
     tx.sign(wallet.private_key)
 
-    # Modification après signature
+    
     tx.amount = 999
 
     assert tx.is_valid(wallet.public_key) is False

@@ -13,4 +13,4 @@ def test_wallet_generates_address():
     address = wallet.get_address()
 
     assert isinstance(address, str)
-    assert len(address) == 64  # SHA256 hex = 64 caractères
+    assert len(address) == 64  
