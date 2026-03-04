@@ -18,8 +18,29 @@ class Blockchain:
         return self.chain[-1]
 
     def add_block(self, block):
-        if block.header.previous_hash != self.get_latest_block().compute_hash():
+        """
+        Ajoute un bloc s'il est valide :
+        - lien correct
+        - preuve de travail valide
+        - transactions valides
+        """
+
+        # Vérifie le lien
+        if block.header.previous_hash != self.get_latest_block().hash:
             raise ValueError("Previous hash incorrect")
+
+        # Vérifie la preuve de travail
+        if not block.hash.startswith("0" * self.difficulty):
+            raise ValueError("Invalid Proof of Work")
+
+        # Vérifie les transactions
+        for tx in block.transactions:
+            if tx.signature is None:
+                raise ValueError("Unsigned transaction in block")
+
+        # Vérifie que le hash correspond bien au contenu
+        if block.hash != block.compute_hash():
+            raise ValueError("Block hash mismatch")
 
         self.chain.append(block)
 

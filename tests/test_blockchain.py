@@ -35,6 +35,7 @@ def test_add_block():
         transactions=[tx]
     )
 
+    new_block.mine(blockchain.difficulty)
     blockchain.add_block(new_block)
 
     assert len(blockchain.chain) == 2
@@ -50,6 +51,7 @@ def test_chain_invalid_if_tampered():
         transactions=[tx]
     )
 
+    new_block.mine(blockchain.difficulty)
     blockchain.add_block(new_block)
 
     blockchain.chain[1].header.nonce += 1
