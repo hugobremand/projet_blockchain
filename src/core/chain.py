@@ -4,6 +4,7 @@ from src.core.block import Block
 class Blockchain:
     def __init__(self):
         self.chain = []
+        self.difficulty = 3
         self.create_genesis_block()
 
     def create_genesis_block(self):
@@ -35,3 +36,22 @@ class Blockchain:
                 return False
 
         return True
+    
+    def mine_pending_transactions(self, mempool):
+        """
+        Crée un bloc avec les transactions de la mempool,
+        puis le mine.
+        """
+        if not mempool.transactions:
+            raise ValueError("No transactions to mine")
+
+        new_block = Block(
+            previous_hash=self.get_latest_block().hash,
+            transactions=mempool.get_all_transactions()
+        )
+
+        new_block.mine(self.difficulty)
+
+        self.add_block(new_block)
+
+        mempool.remove_transactions(new_block.transactions)

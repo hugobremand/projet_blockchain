@@ -41,3 +41,18 @@ class Block:
     def compute_hash(self):
         block_string = json.dumps(self.header.to_dict(), sort_keys=True)
         return hashlib.sha256(block_string.encode()).hexdigest()
+    
+    def mine(self, difficulty):
+        """
+        Proof of Work :
+        Le hash du bloc doit commencer par 'difficulty' zéros.
+        """
+        prefix = "0" * difficulty
+
+        while True:
+            self.hash = self.compute_hash()
+
+            if self.hash.startswith(prefix):
+                break
+
+            self.header.nonce += 1
