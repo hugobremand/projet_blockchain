@@ -1,0 +1,20 @@
+### Voir la blockchain
+GET http://127.0.0.1:5000/chain
+
+
+### Ajouter une transaction
+POST http://127.0.0.1:5000/transaction
+Content-Type: application/json
+
+{
+  "sender": "Alice",
+  "receiver": "Bob",
+  "amount": 10
+}
+
+### Voir la mempool
+GET http://127.0.0.1:5000/mempool
+
+
+### Miner un bloc
+POST http://127.0.0.1:5000/mine

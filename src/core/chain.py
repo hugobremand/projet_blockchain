@@ -76,3 +76,20 @@ class Blockchain:
         self.add_block(new_block)
 
         mempool.remove_transactions(new_block.transactions)
+        
+    def get_balance(self, address):
+        """
+        Calcule le solde d'une adresse en parcourant toute la chaîne.
+        """
+        balance = 0
+
+        for block in self.chain:
+            for tx in block.transactions:
+
+                if tx.sender == address:
+                    balance -= tx.amount
+
+                if tx.receiver == address:
+                    balance += tx.amount
+
+        return balance
