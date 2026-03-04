@@ -28,10 +28,10 @@ class Blockchain:
             current_block = self.chain[i]
             previous_block = self.chain[i - 1]
 
-            if current_block.header.previous_hash != previous_block.compute_hash():
+            if current_block.header.previous_hash != previous_block.hash:
                 return False
 
-            if current_block.compute_hash() != current_block.compute_hash():
+            if current_block.hash != current_block.compute_hash():
                 return False
 
         return True

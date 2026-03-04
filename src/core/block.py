@@ -26,6 +26,8 @@ class Block:
 
         self.header.merkle_root = self.compute_merkle_root()
 
+        self.hash = self.compute_hash()
+
     def compute_merkle_root(self):
         if not self.transactions:
             return hashlib.sha256("".encode()).hexdigest()
