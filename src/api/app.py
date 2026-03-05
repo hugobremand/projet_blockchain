@@ -1,10 +1,20 @@
-from flask import Flask, request, jsonify
+import os
+from flask import Flask, render_template, request, jsonify
 from src.core.chain import Blockchain
 from src.core.mempool import Mempool
 from src.core.transaction import Transaction
 from src.crypto.keys import WalletKeys
+from src.crypto.signature import verify_signature
+from cryptography.hazmat.primitives import serialization
+import base64
 
-app = Flask(__name__)
+template_dir = os.path.abspath("templates")
+
+app = Flask(__name__, template_folder=template_dir)
+
+@app.route("/")
+def home():
+    return render_template("index.html")
 
 blockchain = Blockchain()
 mempool = Mempool()
@@ -33,25 +43,33 @@ def get_chain():
 
 @app.route("/mempool", methods=["GET"])
 def get_mempool():
-    return jsonify([
+
+    return [
         {
             "sender": tx.sender,
             "receiver": tx.receiver,
             "amount": tx.amount
         }
         for tx in mempool.transactions
-    ]), 200
+    ]
 
 
 @app.route("/transaction", methods=["POST"])
 def add_transaction():
     data = request.get_json()
 
-    required_fields = ["sender", "receiver", "amount"]
+    required_fields = [
+        "sender",
+        "receiver",
+        "amount",
+        "signature",
+        "public_key"
+    ]
 
     if not all(field in data for field in required_fields):
         return jsonify({"error": "Missing fields"}), 400
 
+    # Reconstruction transaction
     tx = Transaction(
         sender=data["sender"],
         receiver=data["receiver"],
@@ -59,10 +77,24 @@ def add_transaction():
         nonce=1
     )
 
-    # Ici on ne gère pas encore la signature externe (simplification)
-    tx.signature = "manual"
+    # Charger la clé publique envoyée (format PEM base64)
+    public_key_bytes = base64.b64decode(data["public_key"])
+    public_key = serialization.load_pem_public_key(public_key_bytes)
 
-    mempool.transactions.append(tx)
+    # Décoder signature
+    signature_bytes = base64.b64decode(data["signature"])
+
+    # Vérifier signature
+    if not verify_signature(
+        public_key,
+        tx.compute_hash().encode(),
+        signature_bytes
+    ):
+        return jsonify({"error": "Invalid signature"}), 400
+
+    tx.signature = signature_bytes
+
+    mempool.add_transaction(tx, public_key)
 
     return jsonify({"message": "Transaction added to mempool"}), 201
 

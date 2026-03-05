@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Mini Blockchain Explorer</title>
+
+    <style>
+        body{
+            font-family: Arial;
+            margin:40px;
+            background:#f4f4f4;
+        }
+
+        h1{
+            color:#333;
+        }
+
+        button{
+            padding:10px;
+            margin:5px;
+        }
+
+        input{
+            padding:8px;
+            margin:5px;
+        }
+
+        .box{
+            background:white;
+            padding:20px;
+            margin-top:20px;
+            border-radius:5px;
+            box-shadow:0px 0px 5px rgba(0,0,0,0.1);
+        }
+
+        pre{
+            background:#222;
+            color:#00ff88;
+            padding:15px;
+            overflow:auto;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>🚀 Mini Blockchain Explorer</h1>
+
+<button onclick="loadChain()">🔗 Voir Blockchain</button>
+<button onclick="loadMempool()">📥 Voir Mempool</button>
+<button onclick="mineBlock()">⛏ Miner Bloc</button>
+
+<div class="box">
+
+<h2>Envoyer une transaction</h2>
+
+<input id="sender" placeholder="Sender">
+<input id="receiver" placeholder="Receiver">
+<input id="amount" placeholder="Amount">
+
+<button onclick="sendTransaction()">Envoyer</button>
+
+</div>
+
+<div class="box">
+
+<h2>Blockchain</h2>
+
+<pre id="chain"></pre>
+
+</div>
+
+<div class="box">
+
+<h2>Mempool</h2>
+
+<pre id="mempool"></pre>
+
+</div>
+
+<script>
+
+const API = "http://127.0.0.1:5000"
+
+
+async function loadChain(){
+
+    const response = await fetch(API + "/chain")
+    const data = await response.json()
+
+    document.getElementById("chain").textContent =
+        JSON.stringify(data,null,2)
+}
+
+
+async function loadMempool(){
+
+    const response = await fetch(API + "/mempool")
+    const data = await response.json()
+
+    document.getElementById("mempool").textContent =
+        JSON.stringify(data,null,2)
+}
+
+
+async function sendTransaction(){
+
+    const sender = document.getElementById("sender").value
+    const receiver = document.getElementById("receiver").value
+    const amount = parseInt(document.getElementById("amount").value)
+
+    const response = await fetch(API + "/transaction",{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+            sender:sender,
+            receiver:receiver,
+            amount:amount
+        })
+    })
+
+    const data = await response.json()
+
+    alert(JSON.stringify(data))
+}
+
+
+async function mineBlock(){
+
+    const response = await fetch(API + "/mine")
+
+    const data = await response.json()
+
+    alert(JSON.stringify(data))
+
+    loadChain()
+}
+
+</script>
+
+</body>
+</html>
