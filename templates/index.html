@@ -66,7 +66,7 @@
 
 <h2>Blockchain</h2>
 
-<pre id="chain"></pre>
+<div id="chain"></div>
 
 </div>
 
@@ -86,10 +86,47 @@ const API = "http://127.0.0.1:5000"
 async function loadChain(){
 
     const response = await fetch(API + "/chain")
-    const data = await response.json()
+    const chain = await response.json()
 
-    document.getElementById("chain").textContent =
-        JSON.stringify(data,null,2)
+    const container = document.getElementById("chain")
+
+    container.innerHTML = ""
+
+    chain.forEach((block, index) => {
+
+        let blockHTML = `
+        <div class="box">
+            <h3>Bloc ${index}</h3>
+            <p><b>Hash:</b> ${block.hash}</p>
+            <p><b>Previous:</b> ${block.previous_hash}</p>
+            <p><b>Transactions:</b></p>
+        `
+
+        if(block.transactions.length === 0){
+
+            blockHTML += `<p>Aucune transaction</p>`
+
+        } else {
+
+            block.transactions.forEach(tx => {
+
+                blockHTML += `
+                <p>
+                    ${tx.sender} → ${tx.receiver}
+                    (${tx.amount})
+                </p>
+                `
+
+            })
+
+        }
+
+        blockHTML += `</div>`
+
+        container.innerHTML += blockHTML
+
+    })
+
 }
 
 
