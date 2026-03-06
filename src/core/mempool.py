@@ -9,8 +9,9 @@ class Mempool:
         """
         Ajoute une transaction si elle est valide.
         """
-        if not transaction.is_valid(public_key):
-            raise ValueError("Invalid transaction")
+        if public_key is not None:
+            if not transaction.is_valid(public_key):
+                raise ValueError("Invalid transaction signature")
 
         self.transactions.append(transaction)
 

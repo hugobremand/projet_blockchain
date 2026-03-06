@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Mini Blockchain Explorer</title>
+    <title>Un Blockchain de qualité</title>
 
     <style>
         body{
@@ -46,6 +46,10 @@
 
 <h1>🚀 Mini Blockchain Explorer</h1>
 
+<button onclick="createWallet()">Créer un wallet</button>
+
+<pre id="walletResult"></pre>
+
 <button onclick="loadChain()">🔗 Voir Blockchain</button>
 <button onclick="loadMempool()">📥 Voir Mempool</button>
 <button onclick="mineBlock()">⛏ Miner Bloc</button>
@@ -64,6 +68,19 @@
 
 <div class="box">
 
+<h2>Wallets</h2>
+
+<button onclick="loadWallets()">Actualiser Wallets</button>
+
+<div id="wallets"></div>
+
+<button onclick="giveMoney('Alice')">💰 Faucet Alice</button>
+<button onclick="giveMoney('Bob')">💰 Faucet Bob</button>
+
+</div>
+
+<div class="box">
+
 <h2>Blockchain</h2>
 
 <div id="chain"></div>
@@ -74,7 +91,7 @@
 
 <h2>Mempool</h2>
 
-<pre id="mempool"></pre>
+<div id="mempool"></div>
 
 </div>
 
@@ -129,14 +146,87 @@ async function loadChain(){
 
 }
 
+async function loadWallets(){
+
+    const users = ["Alice","Bob"]
+
+    const container = document.getElementById("wallets")
+
+    container.innerHTML = ""
+
+    for(const user of users){
+
+        const response = await fetch(API + "/balance/" + user)
+        const data = await response.json()
+
+        const html = `
+        <div class="box">
+            <p><b>Adresse:</b> ${data.address}</p>
+            <p><b>Balance:</b> ${data.balance}</p>
+        </div>
+        `
+
+        container.innerHTML += html
+
+    }
+
+}
+async function createWallet() {
+
+    const response = await fetch("/wallet/create", {
+        method: "POST"
+    })
+
+    const data = await response.json()
+
+    console.log(data)
+
+    document.getElementById("walletResult").innerText =
+        "Public Key:\n" + data.public_key + "\n\nPrivate Key:\n" + data.private_key
+}
+
+async function giveMoney(user){
+
+    await fetch(API + "/faucet/" + user,{
+        method:"POST"
+    })
+
+    alert("100 coins sent to " + user)
+
+    loadWallets()
+}
+
 
 async function loadMempool(){
 
     const response = await fetch(API + "/mempool")
-    const data = await response.json()
+    const mempool = await response.json()
 
-    document.getElementById("mempool").textContent =
-        JSON.stringify(data,null,2)
+    const container = document.getElementById("mempool")
+
+    container.innerHTML = ""
+
+    if(mempool.length === 0){
+
+        container.innerHTML = "<p>Aucune transaction en attente</p>"
+        return
+
+    }
+
+    mempool.forEach(tx => {
+
+        const txHTML = `
+        <div class="box">
+            <p><b>Sender:</b> ${tx.sender}</p>
+            <p><b>Receiver:</b> ${tx.receiver}</p>
+            <p><b>Amount:</b> ${tx.amount}</p>
+        </div>
+        `
+
+        container.innerHTML += txHTML
+
+    })
+
 }
 
 
@@ -166,7 +256,9 @@ async function sendTransaction(){
 
 async function mineBlock(){
 
-    const response = await fetch(API + "/mine")
+    const response = await fetch(API + "/mine",{
+        method:"POST"
+    })
 
     const data = await response.json()
 

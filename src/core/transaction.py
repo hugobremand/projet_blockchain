@@ -28,8 +28,10 @@ class Transaction:
         self.signature = sign_message(private_key, message)
 
     def is_valid(self, public_key):
-        if self.signature is None:
-            return False
+
+        # Transaction système (mint)
+        if self.sender == "SYSTEM":
+            return True
 
         message = self.compute_hash().encode()
         return verify_signature(public_key, message, self.signature)

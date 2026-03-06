@@ -40,63 +40,103 @@ def get_chain():
 
     return jsonify(chain_data), 200
 
+@app.route("/wallet/create", methods=["POST"])
+def create_wallet():
+
+    wallet = WalletKeys()
+
+    # Convertir la clé privée en texte PEM
+    private_key_bytes = wallet.private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
+    )
+
+    # Convertir la clé publique en texte PEM
+    public_key_bytes = wallet.public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+
+    # Convertir les bytes en string
+    private_key = private_key_bytes.decode()
+    public_key = public_key_bytes.decode()
+
+    return jsonify({
+        "public_key": public_key,
+        "private_key": private_key
+    }), 200
+
+@app.route("/balance/<address>", methods=["GET"])
+def get_balance(address):
+
+    balance = blockchain.get_balance(address)
+
+    return jsonify({
+        "address": address,
+        "balance": balance
+    })
+
+@app.route("/faucet/<address>", methods=["POST"])
+def faucet(address):
+
+    tx = Transaction(
+        sender="SYSTEM",
+        receiver=address,
+        amount=100,
+        nonce=0
+    )
+
+    tx.signature = "system"
+
+    mempool.add_transaction(tx, None)
+
+    return jsonify({
+        "message": f"100 coins sent to {address}"
+    }), 200
+
 
 @app.route("/mempool", methods=["GET"])
 def get_mempool():
 
-    return [
+    return jsonify([
         {
             "sender": tx.sender,
             "receiver": tx.receiver,
             "amount": tx.amount
         }
         for tx in mempool.transactions
-    ]
+    ])
 
 
 @app.route("/transaction", methods=["POST"])
 def add_transaction():
+
     data = request.get_json()
 
     required_fields = [
         "sender",
         "receiver",
-        "amount",
-        "signature",
-        "public_key"
+        "amount"
     ]
 
     if not all(field in data for field in required_fields):
         return jsonify({"error": "Missing fields"}), 400
 
-    # Reconstruction transaction
     tx = Transaction(
         sender=data["sender"],
         receiver=data["receiver"],
-        amount=data["amount"],
+        amount=int(data["amount"]),
         nonce=1
     )
 
-    # Charger la clé publique envoyée (format PEM base64)
-    public_key_bytes = base64.b64decode(data["public_key"])
-    public_key = serialization.load_pem_public_key(public_key_bytes)
+    tx.signature = "demo"
 
-    # Décoder signature
-    signature_bytes = base64.b64decode(data["signature"])
+    mempool.add_transaction(tx, None)
 
-    # Vérifier signature
-    if not verify_signature(
-        public_key,
-        tx.compute_hash().encode(),
-        signature_bytes
-    ):
-        return jsonify({"error": "Invalid signature"}), 400
-
-    tx.signature = signature_bytes
-
-    mempool.add_transaction(tx, public_key)
-
-    return jsonify({"message": "Transaction added to mempool"}), 201
+    return jsonify({
+        "message": "Transaction added to mempool"
+    }), 201
 
 
 @app.route("/mine", methods=["POST"])
